@@ -278,23 +278,117 @@ JOIN car_shop.cars c
 -- Этап 2. Создание выборок
 
 ---- Задание 1. Напишите запрос, который выведет процент моделей машин, у которых нет параметра `gasoline_consumption`.
+SELECT
+
+  COUNT(*) AS total,
+
+  ROUND(
+
+    SUM(CASE WHEN gasoline_consumption IS NULL THEN 1 ELSE 0 END) * 100.0 /
+
+    COUNT(*),    2  ) AS nulls_percentage_gasoline_consumption
+
+FROM car_shop.models;
+
 
 
 
 ---- Задание 2. Напишите запрос, который покажет название бренда и среднюю цену его автомобилей в разбивке по всем годам с учётом скидки.
 
+SELECT
 
+      b.brand_name,
+
+      EXTRACT(YEAR FROM s.sale_date) AS year,
+
+      ROUND(AVG(s.price * (1 - s.discount/100)), 2) AS price_avg
+
+FROM car_shop.sales s
+
+JOIN car_shop.cars c USING (car_id)
+
+JOIN car_shop.models m USING (model_id)
+
+JOIN car_shop.brands b USING (brand_id)
+
+GROUP BY
+
+      b.brand_name,
+
+     EXTRACT(YEAR FROM s.sale_date)
+
+ORDER BY
+
+    b.brand_name ASC,
+
+    year ASC;
 
 ---- Задание 3. Посчитайте среднюю цену всех автомобилей с разбивкой по месяцам в 2022 году с учётом скидки.
 
+SELECT
 
+    EXTRACT(MONTH FROM s.sale_date) AS month,  -- Получаем номер месяца (1-12)
+
+    2022 AS year,                              -- Явно указываем год
+
+    ROUND(AVG(s.price * (1 - s.discount/100.0)), 2) AS price_avg  -- Средняя цена со скидкой
+
+FROM
+
+    car_shop.sales s
+
+WHERE
+
+    EXTRACT(YEAR FROM s.sale_date) = 2022      -- Только 2022 год
+
+GROUP BY
+
+    EXTRACT(MONTH FROM s.sale_date)            -- Группируем по месяцам
+
+ORDER BY
+
+    month;
 
 ---- Задание 4. Напишите запрос, который выведет список купленных машин у каждого пользователя.
 
+SELECT
 
+    c.full_name AS person,
+
+    STRING_AGG(b.brand_name || ' ' || m.model_name, ', ') AS cars
+
+FROM
+
+    car_shop.customers c
+
+JOIN    car_shop.sales s USING (customer_id)
+
+JOIN    car_shop.cars ca USING (car_id)
+
+JOIN    car_shop.models m USING (model_id)
+
+JOIN    car_shop.brands b USING (brand_id)
+
+GROUP BY
+
+    c.full_name
+
+ORDER BY
+
+    person;
 
 ---- Задание 5. Напишите запрос, который покажет количество всех пользователей из США.
 
+SELECT
 
+COUNT(*) AS persons_from_usa_count
+
+FROM
+
+car_shop.customers
+
+WHERE
+
+phone LIKE '+1%';
 
 
